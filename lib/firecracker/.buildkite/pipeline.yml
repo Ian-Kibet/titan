@@ -1,0 +1,153 @@
+# Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
+#
+# Licensed under the Apache License, Version 2.0 (the "License"). You may
+# not use this file except in compliance with the License. A copy of the
+# License is located at
+#
+# 	http://aws.amazon.com/apache2.0/
+#
+# or in the "license" file accompanying this file. This file is distributed
+# on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either
+# express or implied. See the License for the specific language governing
+# permissions and limitations under the License.
+env:
+  PATH: "/usr/lib/go-1.15/bin:/usr/bin"
+  FC_TEST_DATA_PATH: "/tmp/buildkite_build_${BUILDKITE_BUILD_NUMBER}_testdata"
+
+steps:
+  - label: ':ec2: prepare environment'
+    command:
+      - uname -a
+      - go version
+      - "mkdir -p ${FC_TEST_DATA_PATH}"
+    agents:
+      queue: "${BUILDKITE_AGENT_META_DATA_QUEUE:-default}"
+      distro: "${BUILDKITE_AGENT_META_DATA_DISTRO}"
+      hostname: "${BUILDKITE_AGENT_META_DATA_HOSTNAME}"
+
+  - label: ':go: go mod download'
+    command: 'go mod download'
+    agents:
+      queue: "${BUILDKITE_AGENT_META_DATA_QUEUE:-default}"
+      distro: "${BUILDKITE_AGENT_META_DATA_DISTRO}"
+      hostname: "${BUILDKITE_AGENT_META_DATA_HOSTNAME}"
+
+  - label: ':linux: setup taps'
+    commands:
+      - 'sudo ip tuntap add fc-test-tap${BUILDKITE_BUILD_NUMBER} mode tap user $(sudo id -u buildkite-agent)'
+      - 'sudo ip tuntap add fc-root-tap${BUILDKITE_BUILD_NUMBER} mode tap user $(sudo id -u buildkite-agent)'
+      - 'sudo ip tuntap add fc-mst-tap${BUILDKITE_BUILD_NUMBER} mode tap user $(sudo id -u buildkite-agent)'
+    agents:
+      queue: "${BUILDKITE_AGENT_META_DATA_QUEUE:-default}"
+      distro: "${BUILDKITE_AGENT_META_DATA_DISTRO}"
+      hostname: "${BUILDKITE_AGENT_META_DATA_HOSTNAME}"
+
+  # Since make test-images mutates the source directory, it cannot be run with other steps.
+  - wait
+
+  - label: ':linux: build docker images'
+    commands:
+      - make test-images
+    agents:
+      queue: "${BUILDKITE_AGENT_META_DATA_QUEUE:-default}"
+      distro: "${BUILDKITE_AGENT_META_DATA_DISTRO}"
+      hostname: "${BUILDKITE_AGENT_META_DATA_HOSTNAME}"
+
+  - wait
+
+  - label: 'git log validation'
+    command: './.buildkite/logcheck.sh'
+    # This should run in the same queue, but we don't care whether it runs on
+    # the same host.
+    agents:
+      queue: "${BUILDKITE_AGENT_META_DATA_QUEUE:-default}"
+
+  - wait
+
+  - label: ':package: install'
+    env:
+      GOBIN: "$FC_TEST_DATA_PATH/bin"
+    commands:
+      # To use ${FC_TEST_DATA_PATH} as testdata/, all files in the original directory must be
+      # copied to the new directory.
+      - cp -r testdata/* ${FC_TEST_DATA_PATH}
+      # Install tc-redirect-tap.
+      - 'go get github.com/awslabs/tc-redirect-tap/cmd/tc-redirect-tap'
+      # Copy vmlinux and root-drive.img.
+      - ln -s /var/lib/fc-ci/vmlinux.bin ${FC_TEST_DATA_PATH}/vmlinux
+      - ln -s /var/lib/fc-ci/rootfs.ext4 ${FC_TEST_DATA_PATH}/root-drive.img
+      # Download Firecracker and its jailer.
+      - make deps
+    agents:
+      queue: "${BUILDKITE_AGENT_META_DATA_QUEUE:-default}"
+      distro: "${BUILDKITE_AGENT_META_DATA_DISTRO}"
+      hostname: "${BUILDKITE_AGENT_META_DATA_HOSTNAME}"
+
+  - wait
+
+  - label: lint
+    command: make lint
+    agents:
+      queue: "${BUILDKITE_AGENT_META_DATA_QUEUE:-default}"
+      distro: "${BUILDKITE_AGENT_META_DATA_DISTRO}"
+      hostname: "${BUILDKITE_AGENT_META_DATA_HOSTNAME}"
+
+  - label: 'build'
+    commands:
+      - 'make'
+    agents:
+      queue: "${BUILDKITE_AGENT_META_DATA_QUEUE:-default}"
+      distro: "${BUILDKITE_AGENT_META_DATA_DISTRO}"
+      hostname: "${BUILDKITE_AGENT_META_DATA_HOSTNAME}"
+
+  - label: ':hammer: tests'
+    commands:
+      - "FC_TEST_TAP=fc-test-tap${BUILDKITE_BUILD_NUMBER} make test EXTRAGOARGS='-v -count=1 -race' DISABLE_ROOT_TESTS=true"
+    agents:
+      queue: "${BUILDKITE_AGENT_META_DATA_QUEUE:-default}"
+      distro: "${BUILDKITE_AGENT_META_DATA_DISTRO}"
+      hostname: "${BUILDKITE_AGENT_META_DATA_HOSTNAME}"
+
+  - label: ':hammer: root tests'
+    commands:
+      - "sudo PATH=$PATH FC_TEST_TAP=fc-root-tap${BUILDKITE_BUILD_NUMBER} FC_TEST_DATA_PATH=${FC_TEST_DATA_PATH} make test EXTRAGOARGS='-v -count=1 -race' DISABLE_ROOT_TESTS="
+    agents:
+      queue: "${BUILDKITE_AGENT_META_DATA_QUEUE:-default}"
+      distro: "${BUILDKITE_AGENT_META_DATA_DISTRO}"
+      hostname: "${BUILDKITE_AGENT_META_DATA_HOSTNAME}"
+
+  - label: ':hammer: test against firecracker main'
+    env:
+      FC_TEST_BIN: "${FC_TEST_DATA_PATH}/firecracker-main"
+      FC_TEST_JAILER_BIN: "${FC_TEST_DATA_PATH}/jailer-main"
+      DOCKER_IMAGE_TAG: "$BUILDKITE_BUILD_NUMBER"
+    commands:
+      - "sudo -E PATH=$PATH FC_TEST_TAP=fc-mst-tap${BUILDKITE_BUILD_NUMBER} make test EXTRAGOARGS='-v -count=1 -race' DISABLE_ROOT_TESTS="
+    agents:
+      queue: "${BUILDKITE_AGENT_META_DATA_QUEUE:-default}"
+      distro: "${BUILDKITE_AGENT_META_DATA_DISTRO}"
+      hostname: "${BUILDKITE_AGENT_META_DATA_HOSTNAME}"
+
+  - label: 'go mod tidy'
+    commands:
+      - 'go mod tidy'
+      - test -z "$(git status --porcelain)" && exit 0 || git --no-pager diff && echo -e '\ngo.mod and/or go.sum differ from committed, please run "go mod tidy" and commit the updated files.\n' && exit 1
+    agents:
+      queue: "${BUILDKITE_AGENT_META_DATA_QUEUE:-default}"
+      distro: "${BUILDKITE_AGENT_META_DATA_DISTRO}"
+      hostname: "${BUILDKITE_AGENT_META_DATA_HOSTNAME}"
+
+  # This allows the cleanup step to always run, regardless of test failure
+  - wait: ~
+    continue_on_failure: true
+
+  - label: ':linux: cleanup'
+    commands:
+      - 'sudo ip tuntap del fc-test-tap${BUILDKITE_BUILD_NUMBER} mode tap'
+      - 'sudo ip tuntap del fc-root-tap${BUILDKITE_BUILD_NUMBER} mode tap'
+      - 'sudo ip tuntap del fc-mst-tap${BUILDKITE_BUILD_NUMBER} mode tap'
+      - 'sudo rm -fr ${FC_TEST_DATA_PATH}'
+    agents:
+      queue: "${BUILDKITE_AGENT_META_DATA_QUEUE:-default}"
+      distro: "${BUILDKITE_AGENT_META_DATA_DISTRO}"
+      hostname: "${BUILDKITE_AGENT_META_DATA_HOSTNAME}"

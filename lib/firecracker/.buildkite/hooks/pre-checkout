@@ -1,0 +1,4 @@
+#! /bin/sh
+set -euo pipefail
+
+find . -user root -print0 | xargs -0 sudo rm -rf '{}'
