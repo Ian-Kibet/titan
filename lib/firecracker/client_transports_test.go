@@ -21,12 +21,8 @@ import (
 	"testing"
 	"time"
 
-<<<<<<< HEAD
 	"titan/lib/firecracker/client/operations"
 
-=======
-	"github.com/Ian-Kibet/firecracker-go-sdk/client/operations"
->>>>>>> b8aa219df3977843c18fb0ce7af8af072b1bf0b8
 	"github.com/go-openapi/runtime"
 	"github.com/stretchr/testify/assert"
 )

@@ -29,11 +29,7 @@ import (
 
 	strfmt "github.com/go-openapi/strfmt"
 
-<<<<<<< HEAD
 	models "titan/lib/firecracker/client/models"
-=======
-	models "github.com/Ian-Kibet/firecracker-go-sdk/client/models"
->>>>>>> b8aa219df3977843c18fb0ce7af8af072b1bf0b8
 )
 
 // NewPatchBalloonStatsIntervalParams creates a new PatchBalloonStatsIntervalParams object

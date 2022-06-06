@@ -23,11 +23,7 @@ import (
 	httptransport "github.com/go-openapi/runtime/client"
 	"github.com/sirupsen/logrus"
 
-<<<<<<< HEAD
 	"titan/lib/firecracker/client"
-=======
-	"github.com/Ian-Kibet/firecracker-go-sdk/client"
->>>>>>> b8aa219df3977843c18fb0ce7af8af072b1bf0b8
 )
 
 // NewUnixSocketTransport creates a new clientTransport configured at the specified Unix socketPath.

@@ -24,11 +24,7 @@ import (
 
 	"github.com/sirupsen/logrus"
 
-<<<<<<< HEAD
 	models "titan/lib/firecracker/client/models"
-=======
-	models "github.com/Ian-Kibet/firecracker-go-sdk/client/models"
->>>>>>> b8aa219df3977843c18fb0ce7af8af072b1bf0b8
 )
 
 const numberOfVMs = 200

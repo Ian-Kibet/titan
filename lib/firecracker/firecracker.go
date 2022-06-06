@@ -21,16 +21,10 @@ import (
 
 	"github.com/sirupsen/logrus"
 
-<<<<<<< HEAD
 	ops "titan/lib/firecracker/client/operations"
 
 	"titan/lib/firecracker/client"
 	models "titan/lib/firecracker/client/models"
-=======
-	"github.com/Ian-Kibet/firecracker-go-sdk/client"
-	models "github.com/Ian-Kibet/firecracker-go-sdk/client/models"
-	ops "github.com/Ian-Kibet/firecracker-go-sdk/client/operations"
->>>>>>> b8aa219df3977843c18fb0ce7af8af072b1bf0b8
 )
 
 const (

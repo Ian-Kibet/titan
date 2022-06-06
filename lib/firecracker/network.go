@@ -29,13 +29,8 @@ import (
 	log "github.com/sirupsen/logrus"
 	"golang.org/x/sys/unix"
 
-<<<<<<< HEAD
 	models "titan/lib/firecracker/client/models"
 	"titan/lib/firecracker/cni/vmconf"
-=======
-	models "github.com/Ian-Kibet/firecracker-go-sdk/client/models"
-	"github.com/Ian-Kibet/firecracker-go-sdk/cni/vmconf"
->>>>>>> b8aa219df3977843c18fb0ce7af8af072b1bf0b8
 )
 
 const (

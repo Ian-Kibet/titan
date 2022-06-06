@@ -36,11 +36,7 @@ import (
 	current "github.com/containernetworking/cni/pkg/types/100"
 	"github.com/containernetworking/plugins/pkg/ns"
 
-<<<<<<< HEAD
 	"titan/lib/firecracker/cni/internal"
-=======
-	"github.com/Ian-Kibet/firecracker-go-sdk/cni/internal"
->>>>>>> b8aa219df3977843c18fb0ce7af8af072b1bf0b8
 )
 
 // StaticNetworkConf holds the configuration needed to configure a VM's networking

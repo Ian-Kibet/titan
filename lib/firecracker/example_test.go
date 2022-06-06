@@ -20,13 +20,8 @@ import (
 
 	log "github.com/sirupsen/logrus"
 
-<<<<<<< HEAD
-	"titan/lib/firecracker"
+	"titan/firecracker"
 	models "titan/lib/firecracker/client/models"
-=======
-	"github.com/Ian-Kibet/firecracker-go-sdk"
-	models "github.com/Ian-Kibet/firecracker-go-sdk/client/models"
->>>>>>> b8aa219df3977843c18fb0ce7af8af072b1bf0b8
 )
 
 func ExampleWithProcessRunner_logging() {

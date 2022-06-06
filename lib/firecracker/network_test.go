@@ -28,11 +28,6 @@ import (
 	"titan/lib/firecracker/fctesting"
 
 	"github.com/containernetworking/cni/libcni"
-<<<<<<< HEAD
-=======
-	models "github.com/Ian-Kibet/firecracker-go-sdk/client/models"
-	"github.com/Ian-Kibet/firecracker-go-sdk/fctesting"
->>>>>>> b8aa219df3977843c18fb0ce7af8af072b1bf0b8
 	"github.com/go-ping/ping"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"

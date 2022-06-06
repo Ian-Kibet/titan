@@ -21,16 +21,10 @@ import (
 	"reflect"
 	"testing"
 
-<<<<<<< HEAD
 	ops "titan/lib/firecracker/client/operations"
 	"titan/lib/firecracker/fctesting"
 
 	models "titan/lib/firecracker/client/models"
-=======
-	models "github.com/Ian-Kibet/firecracker-go-sdk/client/models"
-	ops "github.com/Ian-Kibet/firecracker-go-sdk/client/operations"
-	"github.com/Ian-Kibet/firecracker-go-sdk/fctesting"
->>>>>>> b8aa219df3977843c18fb0ce7af8af072b1bf0b8
 )
 
 func TestHandlerListAppend(t *testing.T) {

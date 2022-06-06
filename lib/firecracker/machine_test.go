@@ -37,15 +37,9 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-<<<<<<< HEAD
 	models "titan/lib/firecracker/client/models"
 	ops "titan/lib/firecracker/client/operations"
 	"titan/lib/firecracker/fctesting"
-=======
-	models "github.com/Ian-Kibet/firecracker-go-sdk/client/models"
-	ops "github.com/Ian-Kibet/firecracker-go-sdk/client/operations"
-	"github.com/Ian-Kibet/firecracker-go-sdk/fctesting"
->>>>>>> b8aa219df3977843c18fb0ce7af8af072b1bf0b8
 )
 
 const (
@@ -1056,12 +1050,7 @@ func TestCaptureFifoToFile_nonblock(t *testing.T) {
 	// we sleep here to check to see the io.Copy is working properly in
 	// captureFifoToFile. This is due to the fifo being opened with O_NONBLOCK,
 	// which causes io.Copy to exit immediately with no error.
-	//
-<<<<<<< HEAD
-	// https://titan/lib/firecracker/issues/156
-=======
-	// https://github.com/Ian-Kibet/firecracker-go-sdk/issues/156
->>>>>>> b8aa219df3977843c18fb0ce7af8af072b1bf0b8
+	// #156
 	time.Sleep(250 * time.Millisecond)
 
 	f, err := os.OpenFile(fifoPath, os.O_RDWR, 0600)
